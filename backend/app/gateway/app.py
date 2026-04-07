@@ -83,11 +83,11 @@ def create_app() -> FastAPI:
     """
 
     app = FastAPI(
-        title="DeerFlow API Gateway",
+        title="DiResearchStudio API Gateway",
         description="""
-## DeerFlow API Gateway
+## DiResearchStudio API Gateway
 
-API Gateway for DeerFlow - A LangGraph-based AI agent backend with sandbox execution capabilities.
+API Gateway for DiResearchStudio - an enterprise AI research workspace built on LangGraph.
 
 ### Features
 
@@ -96,6 +96,7 @@ API Gateway for DeerFlow - A LangGraph-based AI agent backend with sandbox execu
 - **Memory Management**: Access and manage global memory data for personalized conversations
 - **Skills Management**: Query and manage skills and their enabled status
 - **Artifacts**: Access thread artifacts and generated files
+- **Admin Console**: User management, conversation review, and capability visibility
 - **Health Monitoring**: System health check endpoints
 
 ### Architecture
@@ -216,7 +217,7 @@ This gateway provides custom endpoints for models, MCP configuration, skills, an
         Returns:
             Service health status information.
         """
-        return {"status": "healthy", "service": "deer-flow-gateway"}
+        return {"status": "healthy", "service": "diresearchstudio-gateway"}
 
     return app
 
