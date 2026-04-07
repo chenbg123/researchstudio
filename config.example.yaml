@@ -12,7 +12,7 @@
 # ============================================================================
 # Bump this number when the config schema changes.
 # Run `make config-upgrade` to merge new fields into your local config.yaml.
-config_version: 5
+config_version: 6
 
 # ============================================================================
 # Logging
@@ -697,3 +697,16 @@ checkpointer:
 #     use: my_package:MyGuardrailProvider
 #     config:
 #       key: value
+
+# ============================================================================
+# Gateway Configuration (DiResearchStudio Enterprise)
+# ============================================================================
+# Application database and authentication settings for the enterprise workspace.
+# These are read by the FastAPI gateway at startup.
+
+gateway:
+  database_url: postgresql+psycopg://postgres:postgres@localhost:5432/diresearchstudio
+  trusted_header_auth_enabled: false
+  trusted_header_user_id: X-User-Id
+  trusted_header_display_name: X-User-Name
+  trusted_header_email: X-User-Email
