@@ -1,8 +1,5 @@
 import { redirect } from "next/navigation";
 
-import { getSession } from "@/server/better-auth/server";
-
-export default async function HomePage() {
-  const session = await getSession();
-  redirect(session ? "/workspace" : "/login");
+export default function HomePage() {
+  redirect("/login");
 }

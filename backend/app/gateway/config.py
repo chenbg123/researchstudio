@@ -19,19 +19,39 @@ class GatewayConfig(BaseModel):
 _gateway_config: GatewayConfig | None = None
 
 
+def _load_gateway_section() -> dict:
+    """Load the gateway section from config.yaml if available."""
+    try:
+        from deerflow.config.app_config import AppConfig
+
+        config_path = AppConfig.resolve_config_path()
+        if config_path and config_path.is_file():
+            import yaml
+
+            with open(config_path) as f:
+                data = yaml.safe_load(f) or {}
+            return data.get("gateway", {}) or {}
+    except Exception:
+        pass
+    return {}
+
+
 def get_gateway_config() -> GatewayConfig:
-    """Get gateway config, loading from environment if available."""
+    """Get gateway config, loading from config.yaml and environment overrides."""
     global _gateway_config
     if _gateway_config is None:
+        # Read defaults from config.yaml gateway section
+        yaml_section = _load_gateway_section()
+
         cors_origins_str = os.getenv("CORS_ORIGINS", "http://localhost:3000")
         _gateway_config = GatewayConfig(
             host=os.getenv("GATEWAY_HOST", "0.0.0.0"),
             port=int(os.getenv("GATEWAY_PORT", "8001")),
             cors_origins=cors_origins_str.split(","),
-            database_url=os.getenv("DATABASE_URL", "postgresql+psycopg://postgres:postgres@localhost:5432/diresearchstudio"),
-            trusted_header_auth_enabled=os.getenv("TRUSTED_HEADER_AUTH_ENABLED", "false").lower() == "true",
-            trusted_header_user_id=os.getenv("TRUSTED_HEADER_USER_ID", "X-User-Id"),
-            trusted_header_display_name=os.getenv("TRUSTED_HEADER_DISPLAY_NAME", "X-User-Name"),
-            trusted_header_email=os.getenv("TRUSTED_HEADER_EMAIL", "X-User-Email"),
+            database_url=os.getenv("DATABASE_URL", yaml_section.get("database_url", "postgresql+psycopg://postgres:postgres@localhost:5432/diresearchstudio")),
+            trusted_header_auth_enabled=os.getenv("TRUSTED_HEADER_AUTH_ENABLED", str(yaml_section.get("trusted_header_auth_enabled", "false"))).lower() == "true",
+            trusted_header_user_id=os.getenv("TRUSTED_HEADER_USER_ID", yaml_section.get("trusted_header_user_id", "X-User-Id")),
+            trusted_header_display_name=os.getenv("TRUSTED_HEADER_DISPLAY_NAME", yaml_section.get("trusted_header_display_name", "X-User-Name")),
+            trusted_header_email=os.getenv("TRUSTED_HEADER_EMAIL", yaml_section.get("trusted_header_email", "X-User-Email")),
         )
     return _gateway_config

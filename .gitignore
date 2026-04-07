@@ -55,3 +55,8 @@ web/
 # Deployment artifacts
 backend/Dockerfile.langgraph
 config.yaml.bak
+
+# SQLite development databases
+*.db
+!ehthumbs.db
+!Thumbs.db

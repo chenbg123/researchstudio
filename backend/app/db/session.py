@@ -13,7 +13,10 @@ def _get_engine():
         from app.gateway.config import get_gateway_config
 
         config = get_gateway_config()
-        _engine = create_engine(config.database_url, future=True, pool_pre_ping=True)
+        kwargs: dict = {"future": True}
+        if not config.database_url.startswith("sqlite"):
+            kwargs["pool_pre_ping"] = True
+        _engine = create_engine(config.database_url, **kwargs)
     return _engine
 
 

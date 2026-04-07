@@ -1,12 +1,6 @@
-import { type AuthSession } from "./types";
+import { getBackendBaseURL } from "@/core/config";
 
-function getBackendBaseURL(): string {
-  if (typeof window !== "undefined") {
-    // Client-side: use relative URL through nginx proxy
-    return "";
-  }
-  return process.env.NEXT_PUBLIC_BACKEND_BASE_URL ?? "";
-}
+import { type AuthSession } from "./types";
 
 export async function loginWithPassword(
   username: string,
