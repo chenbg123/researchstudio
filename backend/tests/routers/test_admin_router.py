@@ -77,3 +77,58 @@ def test_admin_can_list_users():
 
     assert response.status_code == 200
     assert len(response.json()["users"]) == 1
+
+
+def test_admin_can_toggle_skill_visibility():
+    app, admin_mod = _make_app()
+
+    from app.db.models.admin_visibility import AdminVisibility
+
+    fake_rule = AdminVisibility(
+        id=uuid.uuid4(),
+        category="skills",
+        key="research-pack",
+        enabled=False,
+    )
+
+    mock_session = MagicMock()
+    app.dependency_overrides[get_db_session] = lambda: mock_session
+    app.dependency_overrides[admin_mod.require_admin] = lambda: {"id": "admin-1", "role": "admin"}
+
+    with patch("app.gateway.routers.admin.VisibilityService") as mock_vis:
+        mock_vis.return_value.set_rule.return_value = fake_rule
+
+        with TestClient(app) as client:
+            response = client.put(
+                "/api/admin/visibility/skills/research-pack",
+                json={"enabled": False},
+            )
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "category": "skills",
+        "key": "research-pack",
+        "enabled": False,
+    }
+
+
+def test_admin_can_list_visibility_rules():
+    app, admin_mod = _make_app()
+
+    from app.db.models.admin_visibility import AdminVisibility
+
+    fake_rules = [
+        AdminVisibility(id=uuid.uuid4(), category="skills", key="skill-1", enabled=True),
+        AdminVisibility(id=uuid.uuid4(), category="mcp", key="server-1", enabled=False),
+    ]
+
+    mock_session = MagicMock()
+    mock_session.query.return_value.all.return_value = fake_rules
+    app.dependency_overrides[get_db_session] = lambda: mock_session
+    app.dependency_overrides[admin_mod.require_admin] = lambda: {"id": "admin-1", "role": "admin"}
+
+    with TestClient(app) as client:
+        response = client.get("/api/admin/visibility")
+
+    assert response.status_code == 200
+    assert len(response.json()["rules"]) == 2

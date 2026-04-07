@@ -4,9 +4,11 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
+from app.db.models.admin_visibility import AdminVisibility
 from app.db.models.user import User
 from app.db.session import get_db_session
 from app.services.auth import AuthService, _hash_password
+from app.services.visibility import VisibilityService
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
 
@@ -38,6 +40,22 @@ class UserResponse(BaseModel):
 
 class UsersListResponse(BaseModel):
     users: list[UserResponse]
+
+
+class VisibilityUpdateRequest(BaseModel):
+    enabled: bool
+
+
+class VisibilityRuleResponse(BaseModel):
+    category: str
+    key: str
+    enabled: bool
+
+    model_config = {"from_attributes": True}
+
+
+class VisibilityRulesResponse(BaseModel):
+    rules: list[VisibilityRuleResponse]
 
 
 # --- Dependencies ---
@@ -89,3 +107,18 @@ def reset_password(user_id: UUID, request: ResetPasswordRequest, db: Session = D
     db.commit()
     db.refresh(user)
     return UserResponse.model_validate(user)
+
+
+# --- Visibility endpoints ---
+
+
+@router.put("/visibility/{category}/{key}")
+def update_visibility(category: str, key: str, request: VisibilityUpdateRequest, db: Session = Depends(get_db_session), _admin=Depends(require_admin)) -> VisibilityRuleResponse:
+    rule = VisibilityService(db).set_rule(category=category, key=key, enabled=request.enabled)
+    return VisibilityRuleResponse.model_validate(rule)
+
+
+@router.get("/visibility")
+def list_visibility_rules(db: Session = Depends(get_db_session), _admin=Depends(require_admin)) -> VisibilityRulesResponse:
+    rules = db.query(AdminVisibility).all()
+    return VisibilityRulesResponse(rules=[VisibilityRuleResponse.model_validate(rule) for rule in rules])
