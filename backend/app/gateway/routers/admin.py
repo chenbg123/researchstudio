@@ -26,10 +26,16 @@ class LoginRequest(BaseModel):
     password: str
 
 
-class SessionResponse(BaseModel):
-    user_id: str
+class SessionUser(BaseModel):
+    id: str
+    identifier: str
     display_name: str
     role: str
+    email: str | None = None
+
+
+class SessionResponse(BaseModel):
+    user: SessionUser
 
 
 class CreateUserRequest(BaseModel):
@@ -116,12 +122,16 @@ def login(request: LoginRequest, response: Response, db: Session = Depends(get_d
         samesite="lax",
         max_age=86400 * 7,
     )
-    return SessionResponse(user_id=str(user.id), display_name=user.display_name, role=user.role)
+    return SessionResponse(user=SessionUser(
+        id=str(user.id), identifier=user.identifier, display_name=user.display_name, role=user.role, email=user.email,
+    ))
 
 
 @router.get("/auth/session")
 def get_session(user: User = Depends(get_current_user)) -> SessionResponse:
-    return SessionResponse(user_id=str(user.id), display_name=user.display_name, role=user.role)
+    return SessionResponse(user=SessionUser(
+        id=str(user.id), identifier=user.identifier, display_name=user.display_name, role=user.role, email=user.email,
+    ))
 
 
 @router.post("/auth/logout")
