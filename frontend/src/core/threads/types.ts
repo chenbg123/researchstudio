@@ -7,6 +7,8 @@ export interface AgentThreadState extends Record<string, unknown> {
   messages: Message[];
   artifacts: string[];
   todos?: Todo[];
+  owner_id?: string;
+  profile_key?: string;
 }
 
 export interface AgentThread extends Thread<AgentThreadState> {}

@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useParams, usePathname, useRouter } from "next/navigation";
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -63,7 +63,14 @@ export function RecentChatList() {
   const router = useRouter();
   const pathname = usePathname();
   const { thread_id: threadIdFromPath } = useParams<{ thread_id: string }>();
-  const { data: threads = [] } = useThreads();
+  const { data: rawThreads = [] } = useThreads();
+  const threads = useMemo(
+    () =>
+      [...rawThreads].sort(
+        (a, b) => Date.parse(b.updated_at) - Date.parse(a.updated_at),
+      ),
+    [rawThreads],
+  );
   const { mutate: deleteThread } = useDeleteThread();
   const { mutate: renameThread } = useRenameThread();
 
