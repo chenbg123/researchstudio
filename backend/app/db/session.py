@@ -3,8 +3,6 @@ from collections.abc import Generator
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
-from app.gateway.config import get_gateway_config
-
 _engine = None
 _SessionLocal = None
 
@@ -12,6 +10,8 @@ _SessionLocal = None
 def _get_engine():
     global _engine
     if _engine is None:
+        from app.gateway.config import get_gateway_config
+
         config = get_gateway_config()
         _engine = create_engine(config.database_url, future=True, pool_pre_ping=True)
     return _engine

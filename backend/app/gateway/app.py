@@ -7,6 +7,7 @@ from fastapi import FastAPI
 from app.gateway.config import get_gateway_config
 from app.gateway.deps import langgraph_runtime
 from app.gateway.routers import (
+    admin,
     agents,
     artifacts,
     assistants_compat,
@@ -166,6 +167,9 @@ This gateway provides custom endpoints for models, MCP configuration, skills, an
     # CORS is handled by nginx - no need for FastAPI middleware
 
     # Include routers
+    # Admin API is mounted at /api/admin
+    app.include_router(admin.router)
+
     # Models API is mounted at /api/models
     app.include_router(models.router)
 
