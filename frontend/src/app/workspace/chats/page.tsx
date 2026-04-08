@@ -58,7 +58,7 @@ export default function ChatsPage() {
                       </div>
                       {thread.updated_at && (
                         <div className="text-muted-foreground text-sm">
-                          {formatTimeAgo(thread.updated_at)}
+                          {formatTimeAgo(new Date(Number(thread.updated_at) * 1000))}
                         </div>
                       )}
                     </div>

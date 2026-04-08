@@ -67,7 +67,7 @@ export function RecentChatList() {
   const threads = useMemo(
     () =>
       [...rawThreads].sort(
-        (a, b) => Date.parse(b.updated_at) - Date.parse(a.updated_at),
+        (a, b) => Number(b.updated_at) - Number(a.updated_at),
       ),
     [rawThreads],
   );

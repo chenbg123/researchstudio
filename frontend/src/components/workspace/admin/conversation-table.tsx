@@ -49,7 +49,7 @@ export function ConversationTable({
                 <Badge variant="outline">{thread.status}</Badge>
               </td>
               <td className="text-muted-foreground px-3 py-2">
-                {thread.updated_at ? formatTimeAgo(thread.updated_at) : "—"}
+                {thread.updated_at ? formatTimeAgo(new Date(Number(thread.updated_at) * 1000)) : "—"}
               </td>
             </tr>
           ))}
