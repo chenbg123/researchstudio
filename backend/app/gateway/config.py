@@ -43,11 +43,19 @@ def get_gateway_config() -> GatewayConfig:
         # Read defaults from config.yaml gateway section
         yaml_section = _load_gateway_section()
 
-        cors_origins_str = os.getenv("CORS_ORIGINS", "http://localhost:3000")
+        # CORS origins: env var (comma-separated) > config.yaml list > default
+        cors_origins_env = os.getenv("CORS_ORIGINS")
+        if cors_origins_env:
+            cors_origins = cors_origins_env.split(",")
+        elif "cors_origins" in yaml_section and isinstance(yaml_section["cors_origins"], list):
+            cors_origins = yaml_section["cors_origins"]
+        else:
+            cors_origins = ["http://localhost:3000"]
+
         _gateway_config = GatewayConfig(
             host=os.getenv("GATEWAY_HOST", "0.0.0.0"),
             port=int(os.getenv("GATEWAY_PORT", "8001")),
-            cors_origins=cors_origins_str.split(","),
+            cors_origins=cors_origins,
             database_url=os.getenv("DATABASE_URL", yaml_section.get("database_url", "postgresql+psycopg://postgres:postgres@localhost:5432/diresearchstudio")),
             trusted_header_auth_enabled=os.getenv("TRUSTED_HEADER_AUTH_ENABLED", str(yaml_section.get("trusted_header_auth_enabled", "false"))).lower() == "true",
             trusted_header_user_id=os.getenv("TRUSTED_HEADER_USER_ID", yaml_section.get("trusted_header_user_id", "X-User-Id")),

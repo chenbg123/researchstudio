@@ -204,6 +204,26 @@ nohup npx next dev --port 3000 > ../logs/frontend.log 2>&1 &
 echo "Frontend PID: $!"
 ```
 
+> **远程访问（非 localhost）**：如果你从其他机器通过 IP 访问（如 `http://192.168.1.100:3000`），
+> 需要将环境变量中的 `localhost` 替换为服务器实际 IP，并在 `config.yaml` 中配置 CORS：
+>
+> ```bash
+> # 前端环境变量使用服务器 IP
+> NEXT_PUBLIC_BACKEND_BASE_URL=http://192.168.1.100:8001 \
+> NEXT_PUBLIC_LANGGRAPH_BASE_URL=http://192.168.1.100:8001/api \
+> npx next dev --hostname 0.0.0.0 --port 3000
+> ```
+>
+> ```yaml
+> # config.yaml - 添加前端 origin 到 CORS 白名单
+> gateway:
+>   cors_origins:
+>     - http://localhost:3000
+>     - http://192.168.1.100:3000    # 替换为你的服务器 IP
+> ```
+>
+> 也可以通过环境变量设置 CORS：`CORS_ORIGINS=http://localhost:3000,http://192.168.1.100:3000`
+
 #### 方式三：`make dev`（需要 nginx + Node.js 22+）
 
 ```bash
@@ -352,7 +372,7 @@ pnpm check                   # lint + typecheck
 | `DATABASE_URL` | 读取 config.yaml | 数据库连接 URL（覆盖 config.yaml） |
 | `GATEWAY_HOST` | `0.0.0.0` | 网关绑定地址 |
 | `GATEWAY_PORT` | `8001` | 网关端口 |
-| `CORS_ORIGINS` | `http://localhost:3000` | CORS 允许的源（逗号分隔） |
+| `CORS_ORIGINS` | config.yaml 或 `http://localhost:3000` | CORS 允许的源（逗号分隔，覆盖 config.yaml） |
 | `SKIP_ENV_VALIDATION` | — | 设为 `1` 跳过前端环境变量验证 |
 | `NEXT_PUBLIC_BACKEND_BASE_URL` | — | 网关 API 地址 |
 | `NEXT_PUBLIC_LANGGRAPH_BASE_URL` | — | LangGraph API 地址（需带 `/api`） |
@@ -417,17 +437,24 @@ researchstudio/
 
 ### Q: 前端请求报 CORS 错误
 
-确保 `backend/app/gateway/app.py` 中有 CORS 中间件，且 `CORS_ORIGINS` 包含前端地址：
+当浏览器通过非 `localhost` 地址（如 `http://192.168.1.100:3000`）访问时，需要确保：
 
-```python
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+1. **`NEXT_PUBLIC_BACKEND_BASE_URL`** 使用与浏览器相同的 IP（不能用 `localhost`，否则 cookie 跨域丢失）
+2. **CORS 白名单** 包含浏览器的 origin
+
+在 `config.yaml` 中配置：
+
+```yaml
+gateway:
+  cors_origins:
+    - http://localhost:3000
+    - http://192.168.1.100:3000   # 替换为你的实际 IP
 ```
+
+或通过环境变量：`CORS_ORIGINS=http://localhost:3000,http://192.168.1.100:3000`
+
+> **原理**：前端 JS 使用 `credentials: "include"` 发送 cookie，浏览器要求 CORS 响应中
+> `Access-Control-Allow-Origin` 必须是精确的 origin（不能是 `*`），且需要 `Access-Control-Allow-Credentials: true`。
 
 ### Q: SQLite 报 `pool_pre_ping` 错误
 

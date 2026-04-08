@@ -706,6 +706,11 @@ checkpointer:
 
 gateway:
   database_url: postgresql+psycopg://postgres:postgres@localhost:5432/diresearchstudio
+  # CORS origins allowed when accessing the gateway API directly (without nginx).
+  # Add your frontend URL if it differs from the default.
+  # Can also be set via CORS_ORIGINS env var (comma-separated).
+  cors_origins:
+    - http://localhost:3000
   trusted_header_auth_enabled: false
   trusted_header_user_id: X-User-Id
   trusted_header_display_name: X-User-Name
